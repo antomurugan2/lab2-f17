@@ -37,7 +37,8 @@ int shm_open(int id, char **pointer) {
   struct proc* currProc = myproc();
 
   // Find the entry matching the id
-  for(int i = 0; i < 64; i++) {
+  int i;
+  for(i = 0; i < 64; i++) {
     //  If the entry is found then a process has already allocated a physical page 
     // Increment the reference count of that page
     if(shm_table.shm_pages[i].id == id) {
