@@ -77,8 +77,28 @@ int shm_open(int id, char **pointer) {
 int shm_close(int id) {
 //you write this too!
 
-
-
-
-return 0; //added to remove compiler warning -- you should decide what to return
+	int i;
+	//acquire lock on shm_table
+	acquire(&(shm_table.lock));
+	//go through shm_table and look for shared memory
+	for(i = 0; i < 64; i++) {
+		if(shm_table.shm_pages[i].id == id) {
+			shm_table.shm_pages[i].refcnt--; //if shared memory found decrement the reference count
+			if(shm_table.shm_pages[i].refcnt > 0) {
+				break;
+			}
+			//once the reference count reaches 0, clear the shm_table
+			shm_table.shm_pages[i].id = 0;
+			shm_table.shm_pages[i].frame = 0;
+			shm_table.shm_pages[i].refcnt = 0;
+			break;
+		}
+	}
+	//if the shared memory is not found
+	if(shm_table.shm_pages[i].id != id) {
+		release(&(shm_table.lock));
+		return 1;
+	}
+	release(&(shm_table.lock));
+	return 0; //added to remove compiler warning -- you should decide what to return
 }
